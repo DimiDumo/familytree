@@ -18,6 +18,7 @@
 	let gender = $state<'male' | 'female'>('male');
 	let birthDate = $state('');
 	let deathDate = $state('');
+	let biography = $state('');
 
 	const modeLabels: Record<AddMode, string> = {
 		child: 'Add Child',
@@ -34,6 +35,7 @@
 		gender = 'male';
 		birthDate = '';
 		deathDate = '';
+		biography = '';
 	}
 
 	function handleSubmit(e: SubmitEvent) {
@@ -45,7 +47,8 @@
 			lastName: lastName.trim(),
 			gender,
 			birthDate: birthDate || undefined,
-			deathDate: deathDate || undefined
+			deathDate: deathDate || undefined,
+			biography: biography.trim() || undefined
 		});
 
 		resetForm();
@@ -65,6 +68,7 @@
 				gender = editPerson.gender || 'male';
 				birthDate = editPerson.birthDate || '';
 				deathDate = editPerson.deathDate || '';
+				biography = editPerson.biography || '';
 			} else {
 				resetForm();
 			}
@@ -74,43 +78,40 @@
 
 <dialog class="modal" class:modal-open={open}>
 	<div class="modal-box">
-		<h3 class="font-bold text-lg mb-4">{modeLabels[mode]}</h3>
+		<h3 class="font-bold text-lg mb-6">{modeLabels[mode]}</h3>
 
-		<form onsubmit={handleSubmit} class="space-y-4">
-			<div class="form-control">
-				<label class="label" for="firstName">
-					<span class="label-text">First Name *</span>
-				</label>
-				<input
-					id="firstName"
-					type="text"
-					class="input input-bordered"
-					bind:value={firstName}
-					required
-					placeholder="Enter first name"
-				/>
+		<form onsubmit={handleSubmit} class="flex flex-col gap-4">
+			<!-- Name fields -->
+			<div class="grid grid-cols-2 gap-4">
+				<div class="flex flex-col gap-1">
+					<label class="text-sm font-medium" for="firstName">First Name *</label>
+					<input
+						id="firstName"
+						type="text"
+						class="input input-bordered w-full"
+						bind:value={firstName}
+						required
+						placeholder="Enter first name"
+					/>
+				</div>
+				<div class="flex flex-col gap-1">
+					<label class="text-sm font-medium" for="lastName">Last Name *</label>
+					<input
+						id="lastName"
+						type="text"
+						class="input input-bordered w-full"
+						bind:value={lastName}
+						required
+						placeholder="Enter last name"
+					/>
+				</div>
 			</div>
 
-			<div class="form-control">
-				<label class="label" for="lastName">
-					<span class="label-text">Last Name *</span>
-				</label>
-				<input
-					id="lastName"
-					type="text"
-					class="input input-bordered"
-					bind:value={lastName}
-					required
-					placeholder="Enter last name"
-				/>
-			</div>
-
-			<fieldset class="form-control">
-				<legend class="label">
-					<span class="label-text">Gender *</span>
-				</legend>
-				<div class="flex gap-6">
-					<label class="label cursor-pointer gap-2">
+			<!-- Gender -->
+			<div class="flex flex-col gap-2">
+				<span class="text-sm font-medium">Gender *</span>
+				<div class="flex gap-4">
+					<label class="flex items-center gap-2 cursor-pointer">
 						<input
 							type="radio"
 							name="gender"
@@ -118,9 +119,9 @@
 							value="male"
 							bind:group={gender}
 						/>
-						<span class="label-text">Male</span>
+						<span>Male</span>
 					</label>
-					<label class="label cursor-pointer gap-2">
+					<label class="flex items-center gap-2 cursor-pointer">
 						<input
 							type="radio"
 							name="gender"
@@ -128,38 +129,46 @@
 							value="female"
 							bind:group={gender}
 						/>
-						<span class="label-text">Female</span>
+						<span>Female</span>
 					</label>
 				</div>
-			</fieldset>
+			</div>
 
+			<!-- Date fields -->
 			<div class="grid grid-cols-2 gap-4">
-				<div class="form-control">
-					<label class="label" for="birthDate">
-						<span class="label-text">Birth Date</span>
-					</label>
+				<div class="flex flex-col gap-1">
+					<label class="text-sm font-medium" for="birthDate">Birth Date</label>
 					<input
 						id="birthDate"
 						type="date"
-						class="input input-bordered"
+						class="input input-bordered w-full"
 						bind:value={birthDate}
 					/>
 				</div>
-
-				<div class="form-control">
-					<label class="label" for="deathDate">
-						<span class="label-text">Death Date</span>
-					</label>
+				<div class="flex flex-col gap-1">
+					<label class="text-sm font-medium" for="deathDate">Death Date</label>
 					<input
 						id="deathDate"
 						type="date"
-						class="input input-bordered"
+						class="input input-bordered w-full"
 						bind:value={deathDate}
 					/>
 				</div>
 			</div>
 
-			<div class="modal-action">
+			<!-- Biography -->
+			<div class="flex flex-col gap-1">
+				<label class="text-sm font-medium" for="biography">Biography</label>
+				<textarea
+					id="biography"
+					class="textarea textarea-bordered w-full h-24"
+					bind:value={biography}
+					placeholder="Enter biography..."
+				></textarea>
+			</div>
+
+			<!-- Actions -->
+			<div class="flex justify-end gap-2 mt-4">
 				<button type="button" class="btn btn-ghost" onclick={handleClose}>
 					Cancel
 				</button>

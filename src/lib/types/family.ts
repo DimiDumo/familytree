@@ -6,6 +6,7 @@ export interface Person {
 	birthDate?: string;
 	deathDate?: string;
 	photoUrl?: string;
+	biography?: string;
 }
 
 export interface FamilyUnit {
@@ -35,7 +36,8 @@ export function createPerson(data: Partial<Person> & { firstName: string; lastNa
 		gender: data.gender,
 		birthDate: data.birthDate,
 		deathDate: data.deathDate,
-		photoUrl: data.photoUrl
+		photoUrl: data.photoUrl,
+		biography: data.biography
 	};
 }
 

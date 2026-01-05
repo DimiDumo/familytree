@@ -43,6 +43,12 @@
 						<span>{formatDate(person.deathDate)}</span>
 					</div>
 				{/if}
+				{#if person.biography}
+					<div class="pt-2 border-t border-base-300">
+						<span class="text-base-content/60 text-sm">Biography</span>
+						<p class="mt-1 whitespace-pre-wrap">{person.biography}</p>
+					</div>
+				{/if}
 			</div>
 		{/if}
 
