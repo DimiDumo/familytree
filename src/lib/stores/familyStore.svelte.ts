@@ -48,6 +48,8 @@ function createFamilyStore() {
 		const person = createPerson(spouse);
 		unit.persons.push(person);
 		unit.type = 'couple';
+		// The original person (index 0) is the blood descendant, spouse is index 1
+		unit.primaryPersonIndex = 0;
 		save();
 	}
 

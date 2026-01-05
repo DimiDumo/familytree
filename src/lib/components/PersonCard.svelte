@@ -23,14 +23,18 @@
 		const death = person.deathDate ? formatDate(person.deathDate) : '';
 		return death ? `${birth} - ${death}` : `b. ${birth}`;
 	});
+
+	const genderClass = $derived(
+		person.gender === 'male' ? 'male' : person.gender === 'female' ? 'female' : ''
+	);
 </script>
 
 <div class="person-card">
-	<div class="avatar">
+	<div class="avatar {genderClass}">
 		{#if person.photoUrl}
 			<img src={person.photoUrl} alt={fullName} />
 		{:else}
-			<div class="avatar-placeholder">
+			<div class="avatar-placeholder {genderClass}">
 				{person.firstName[0]}{person.lastName[0]}
 			</div>
 		{/if}
@@ -56,7 +60,17 @@
 		border-radius: 50%;
 		overflow: hidden;
 		margin-bottom: 0.5rem;
-		border: 2px solid #d1d5db;
+		border: 3px solid #d1d5db;
+	}
+
+	/* Male - blue border */
+	.avatar.male {
+		border-color: #3b82f6;
+	}
+
+	/* Female - pink border */
+	.avatar.female {
+		border-color: #ec4899;
 	}
 
 	.avatar img {
@@ -75,6 +89,16 @@
 		color: white;
 		font-weight: 600;
 		font-size: 1.25rem;
+	}
+
+	/* Male placeholder - blue background */
+	.avatar-placeholder.male {
+		background: #3b82f6;
+	}
+
+	/* Female placeholder - pink background */
+	.avatar-placeholder.female {
+		background: #ec4899;
 	}
 
 	.info {

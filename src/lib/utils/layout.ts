@@ -73,12 +73,20 @@ export async function layoutFamilyTree(
 	// Convert to Svelte Flow edges
 	const edges: Edge[] = units
 		.filter((unit) => unit.parentId)
-		.map((unit) => ({
-			id: `e-${unit.parentId}-${unit.id}`,
-			source: unit.parentId!,
-			target: unit.id,
-			type: 'family'
-		}));
+		.map((unit) => {
+			// Get the primary person's gender for edge coloring
+			const primaryIndex = unit.primaryPersonIndex ?? 0;
+			const primaryPerson = unit.persons[primaryIndex];
+			const gender = primaryPerson?.gender;
+
+			return {
+				id: `e-${unit.parentId}-${unit.id}`,
+				source: unit.parentId!,
+				target: unit.id,
+				type: 'family',
+				data: { gender }
+			};
+		});
 
 	return { nodes, edges };
 }
@@ -147,11 +155,17 @@ export function familyTreeToNodesEdges(familyTree: FamilyTree): { nodes: Node[];
 	// Create edges
 	units.forEach((unit) => {
 		if (unit.parentId) {
+			// Get the primary person's gender for edge coloring
+			const primaryIndex = unit.primaryPersonIndex ?? 0;
+			const primaryPerson = unit.persons[primaryIndex];
+			const gender = primaryPerson?.gender;
+
 			edges.push({
 				id: `e-${unit.parentId}-${unit.id}`,
 				source: unit.parentId,
 				target: unit.id,
-				type: 'family'
+				type: 'family',
+				data: { gender }
 			});
 		}
 	});

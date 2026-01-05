@@ -26,6 +26,7 @@
 		familyStore.createNew('Sample Family', {
 			firstName: 'John',
 			lastName: 'Smith',
+			gender: 'male',
 			birthDate: '1940-05-15'
 		});
 
@@ -36,6 +37,7 @@
 		familyStore.addSpouse(rootId, {
 			firstName: 'Mary',
 			lastName: 'Smith',
+			gender: 'female',
 			birthDate: '1942-08-22'
 		});
 
@@ -43,6 +45,7 @@
 		familyStore.addChild(rootId, {
 			firstName: 'Robert',
 			lastName: 'Smith',
+			gender: 'male',
 			birthDate: '1965-03-10'
 		});
 
@@ -50,6 +53,7 @@
 		familyStore.addChild(rootId, {
 			firstName: 'Susan',
 			lastName: 'Smith',
+			gender: 'female',
 			birthDate: '1968-11-25'
 		});
 
@@ -63,6 +67,7 @@
 			familyStore.addSpouse(child1Id, {
 				firstName: 'Emily',
 				lastName: 'Smith',
+				gender: 'female',
 				birthDate: '1967-07-14'
 			});
 
@@ -70,12 +75,14 @@
 			familyStore.addChild(child1Id, {
 				firstName: 'Michael',
 				lastName: 'Smith',
+				gender: 'male',
 				birthDate: '1990-02-28'
 			});
 
 			familyStore.addChild(child1Id, {
 				firstName: 'Sarah',
 				lastName: 'Smith',
+				gender: 'female',
 				birthDate: '1993-09-05'
 			});
 
@@ -83,6 +90,7 @@
 			familyStore.addSpouse(child2Id, {
 				firstName: 'David',
 				lastName: 'Johnson',
+				gender: 'male',
 				birthDate: '1966-04-18'
 			});
 
@@ -90,6 +98,7 @@
 			familyStore.addChild(child2Id, {
 				firstName: 'Emma',
 				lastName: 'Johnson',
+				gender: 'female',
 				birthDate: '1992-12-12'
 			});
 		}

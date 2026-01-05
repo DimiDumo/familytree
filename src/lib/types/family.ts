@@ -2,6 +2,7 @@ export interface Person {
 	id: string;
 	firstName: string;
 	lastName: string;
+	gender?: 'male' | 'female';
 	birthDate?: string;
 	deathDate?: string;
 	photoUrl?: string;
@@ -13,6 +14,8 @@ export interface FamilyUnit {
 	persons: Person[];
 	childrenIds: string[];
 	parentId?: string;
+	/** Index of the person who is the blood descendant (0 or 1). The other is the spouse. */
+	primaryPersonIndex?: number;
 }
 
 export interface FamilyTree {
@@ -27,6 +30,7 @@ export function createPerson(data: Partial<Person> & { firstName: string; lastNa
 		id: crypto.randomUUID(),
 		firstName: data.firstName,
 		lastName: data.lastName,
+		gender: data.gender,
 		birthDate: data.birthDate,
 		deathDate: data.deathDate,
 		photoUrl: data.photoUrl
