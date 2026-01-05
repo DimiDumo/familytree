@@ -102,16 +102,6 @@
 		{/each}
 	</div>
 
-	{#if isCouple}
-		<div class="marriage-line"></div>
-	{/if}
-
-	{#if isPolygamous}
-		<!-- Multiple marriage lines for polygamous units -->
-		{#each women as woman, i (woman.id)}
-			<div class="marriage-line" style={`left: ${((i + 0.5 + 0.5) / orderedPersons.length) * 100}%;`}></div>
-		{/each}
-	{/if}
 
 	{#if hasChildren}
 		{#if isPolygamous}
@@ -159,26 +149,10 @@
 
 	/* Colored accent bar showing this person is the blood descendant */
 	.is-primary {
-		border-top: 4px solid #6366f1;
+		border-top: 8px solid #6366f1;
 		border-radius: 0.5rem 0.5rem 0 0;
-		margin-top: -2px;
-		padding-top: 2px;
+		margin-top: -4px;
+		padding-top: 4px;
 	}
 
-	.marriage-line {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		width: 24px;
-		height: 4px;
-		background: #ec4899;
-		border-radius: 2px;
-		z-index: 10;
-	}
-
-	/* For polygamous units, marriage lines have dynamic left positioning */
-	.polygamous .marriage-line {
-		transform: translateY(-50%);
-	}
 </style>

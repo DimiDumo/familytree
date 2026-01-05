@@ -27,9 +27,12 @@
 		const goingRight = targetX > sourceX;
 		const straight = horizontalDiff < 20;
 
+		// End line 1px before target to avoid overlapping the arrow
+		const endY = targetY - 1;
+
 		if (straight) {
 			// Straight line down
-			return `M ${sourceX} ${sourceY} L ${sourceX} ${targetY}`;
+			return `M ${sourceX} ${sourceY} L ${sourceX} ${endY}`;
 		}
 
 		if (goingRight) {
@@ -39,7 +42,7 @@
 				Q ${sourceX} ${midY} ${sourceX + radius} ${midY}
 				L ${targetX - radius} ${midY}
 				Q ${targetX} ${midY} ${targetX} ${midY + radius}
-				L ${targetX} ${targetY}
+				L ${targetX} ${endY}
 			`;
 		} else {
 			return `
@@ -48,7 +51,7 @@
 				Q ${sourceX} ${midY} ${sourceX - radius} ${midY}
 				L ${targetX + radius} ${midY}
 				Q ${targetX} ${midY} ${targetX} ${midY + radius}
-				L ${targetX} ${targetY}
+				L ${targetX} ${endY}
 			`;
 		}
 	});
