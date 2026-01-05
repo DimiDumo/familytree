@@ -17,6 +17,49 @@ function getNodeWidth(unit: FamilyUnit): number {
 	return unit.type === 'couple' ? NODE_WIDTH : SINGLE_NODE_WIDTH;
 }
 
+// Calculate the depth (level) of each unit in the tree
+function calculateLevels(familyTree: FamilyTree): Map<string, number> {
+	const levels = new Map<string, number>();
+	const queue: { id: string; level: number }[] = [{ id: familyTree.rootId, level: 0 }];
+
+	while (queue.length > 0) {
+		const { id, level } = queue.shift()!;
+		levels.set(id, level);
+		const unit = familyTree.units[id];
+		if (unit) {
+			for (const childId of unit.childrenIds) {
+				queue.push({ id: childId, level: level + 1 });
+			}
+		}
+	}
+
+	return levels;
+}
+
+// Align all nodes at the same tree level to the same Y position
+function alignNodesByLevel(nodes: Node[], familyTree: FamilyTree): void {
+	const levels = calculateLevels(familyTree);
+
+	// Group nodes by their level
+	const nodesByLevel = new Map<number, Node[]>();
+	for (const node of nodes) {
+		const level = levels.get(node.id) ?? 0;
+		const group = nodesByLevel.get(level) || [];
+		group.push(node);
+		nodesByLevel.set(level, group);
+	}
+
+	// For each level, find the maximum Y and align all nodes to it
+	for (const [, levelNodes] of nodesByLevel) {
+		if (levelNodes.length > 1) {
+			const maxY = Math.max(...levelNodes.map(n => n.position.y));
+			for (const node of levelNodes) {
+				node.position.y = maxY;
+			}
+		}
+	}
+}
+
 // Reorder children of polygamous units so they align under their mothers
 function reorderPolygamousChildren(nodes: Node[], familyTree: FamilyTree): void {
 	// Find all polygamous units
@@ -103,16 +146,28 @@ export async function layoutFamilyTree(
 		return 0;
 	});
 
-	// Create ELK graph
+	// Create ELK graph with optimized family tree options
 	const elkGraph: ElkGraph = {
 		id: 'root',
 		layoutOptions: {
 			'elk.algorithm': 'layered',
 			'elk.direction': 'DOWN',
-			'elk.spacing.nodeNode': '50',
-			'elk.layered.spacing.nodeNodeBetweenLayers': '80',
-			'elk.layered.nodePlacement.strategy': 'BRANDES_KOEPF',
-			'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP'
+			// Spacing
+			'elk.spacing.nodeNode': '60',
+			'elk.layered.spacing.nodeNodeBetweenLayers': '100',
+			'elk.spacing.edgeNode': '30',
+			// Keep children centered under parents
+			'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
+			'elk.layered.nodePlacement.favorStraightEdges': 'true',
+			// Minimize edge crossings
+			'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
+			'elk.layered.crossingMinimization.semiInteractive': 'true',
+			// Respect the order of children (important for motherIndex sorting)
+			'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',
+			'elk.layered.considerModelOrder.noModelOrder': 'false',
+			// Align nodes in same layer
+			'elk.alignment': 'CENTER',
+			'elk.layered.compaction.postCompaction.strategy': 'EDGE_LENGTH'
 		},
 		children: sortedUnits.map((unit) => ({
 			id: unit.id,
@@ -141,6 +196,9 @@ export async function layoutFamilyTree(
 			data: { unit }
 		};
 	});
+
+	// Post-process: Align nodes at the same tree level to the same Y position
+	alignNodesByLevel(nodes, familyTree);
 
 	// Post-process: Reorder children of polygamous units to align with mothers
 	reorderPolygamousChildren(nodes, familyTree);

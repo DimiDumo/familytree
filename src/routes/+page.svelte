@@ -4,7 +4,7 @@
 	import { familyStore } from '$lib/stores/familyStore.svelte';
 	import { layoutFamilyTree, familyTreeToNodesEdges } from '$lib/utils/layout';
 	import type { Node, Edge } from '@xyflow/svelte';
-	import { createPerson, createFamilyUnit } from '$lib/types/family';
+	import { createPerson, createFamilyUnit, type Person } from '$lib/types/family';
 
 	let nodes = $state<Node[]>([]);
 	let edges = $state<Edge[]>([]);
@@ -145,6 +145,34 @@
 		createSampleTree();
 		updateLayout();
 	}
+
+	// Handle adding a child from the modal
+	function handleAddChild(
+		unitId: string,
+		person: Partial<Person> & { firstName: string; lastName: string },
+		motherIndex?: number
+	) {
+		familyStore.addChild(unitId, person, motherIndex);
+		updateLayout();
+	}
+
+	// Handle adding a spouse from the modal
+	function handleAddSpouse(
+		unitId: string,
+		person: Partial<Person> & { firstName: string; lastName: string }
+	) {
+		familyStore.addSpouse(unitId, person);
+		updateLayout();
+	}
+
+	// Handle adding a partner (mistress) from the modal
+	function handleAddPartner(
+		unitId: string,
+		person: Partial<Person> & { firstName: string; lastName: string }
+	) {
+		familyStore.addMistress(unitId, person);
+		updateLayout();
+	}
 </script>
 
 <div class="h-screen flex flex-col">
@@ -161,7 +189,13 @@
 
 	<main class="flex-1 bg-base-200">
 		{#if showTree && nodes.length > 0}
-			<FamilyTree bind:nodes bind:edges />
+			<FamilyTree
+				bind:nodes
+				bind:edges
+				onAddChild={handleAddChild}
+				onAddSpouse={handleAddSpouse}
+				onAddPartner={handleAddPartner}
+			/>
 		{:else}
 			<div class="flex items-center justify-center h-full">
 				<span class="loading loading-spinner loading-lg"></span>

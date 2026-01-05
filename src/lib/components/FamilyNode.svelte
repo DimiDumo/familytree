@@ -2,14 +2,32 @@
 	import { Handle, Position } from '@xyflow/svelte';
 	import type { FamilyUnit, Person } from '$lib/types/family';
 	import PersonCard from './PersonCard.svelte';
+	import NodeAddControls from './NodeAddControls.svelte';
 
 	interface Props {
 		data: {
 			unit: FamilyUnit;
+			onAddChild?: (unitId: string, motherIndex?: number) => void;
+			onAddSpouse?: (unitId: string) => void;
+			onAddPartner?: (unitId: string) => void;
 		};
 	}
 
 	let { data }: Props = $props();
+
+	let isHovered = $state(false);
+
+	function handleAddChild(motherIndex?: number) {
+		data.onAddChild?.(data.unit.id, motherIndex);
+	}
+
+	function handleAddSpouse() {
+		data.onAddSpouse?.(data.unit.id);
+	}
+
+	function handleAddPartner() {
+		data.onAddPartner?.(data.unit.id);
+	}
 
 	const isCouple = $derived(data.unit.type === 'couple' && data.unit.persons.length === 2);
 	const isPolygamous = $derived(data.unit.type === 'polygamous' && data.unit.persons.length >= 3);
@@ -81,7 +99,16 @@
 	};
 </script>
 
-<div class="bg-base-100 border-2 border-base-300 rounded-xl shadow-md relative hover:border-primary">
+<div
+	class="relative"
+	role="group"
+	onmouseenter={() => (isHovered = true)}
+	onmouseleave={() => (isHovered = false)}
+>
+	<!-- Invisible expanded hover zone -->
+	<div class="absolute -inset-8 pointer-events-auto"></div>
+
+	<div class="bg-base-100 border-2 border-base-300 rounded-xl shadow-md relative hover:border-primary">
 	{#if hasParent}
 		<Handle
 			type="target"
@@ -115,6 +142,15 @@
 			<Handle type="source" position={Position.Bottom} />
 		{/if}
 	{/if}
+	</div>
+
+	<NodeAddControls
+		unit={data.unit}
+		{isHovered}
+		onAddChild={handleAddChild}
+		onAddSpouse={handleAddSpouse}
+		onAddPartner={handleAddPartner}
+	/>
 </div>
 
 <style>
