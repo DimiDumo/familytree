@@ -56,7 +56,8 @@ function createFamilyStore() {
 	// Add a child to a family unit
 	function addChild(
 		parentUnitId: string,
-		child: Partial<Person> & { firstName: string; lastName: string }
+		child: Partial<Person> & { firstName: string; lastName: string },
+		motherIndex?: number
 	) {
 		if (!tree) return;
 
@@ -64,10 +65,26 @@ function createFamilyStore() {
 		if (!parentUnit) return;
 
 		const person = createPerson(child);
-		const childUnit = createFamilyUnit([person], { parentId: parentUnitId });
+		const childUnit = createFamilyUnit([person], { parentId: parentUnitId, motherIndex });
 
 		tree.units[childUnit.id] = childUnit;
 		parentUnit.childrenIds.push(childUnit.id);
+		save();
+	}
+
+	// Add a mistress to a couple (converts to polygamous)
+	function addMistress(
+		unitId: string,
+		mistress: Partial<Person> & { firstName: string; lastName: string }
+	) {
+		if (!tree) return;
+
+		const unit = tree.units[unitId];
+		if (!unit || unit.type === 'single') return;
+
+		const person = createPerson(mistress);
+		unit.persons.push(person);
+		unit.type = 'polygamous';
 		save();
 	}
 
@@ -165,6 +182,7 @@ function createFamilyStore() {
 		load,
 		createNew,
 		addSpouse,
+		addMistress,
 		addChild,
 		addChildUnit,
 		updatePerson,

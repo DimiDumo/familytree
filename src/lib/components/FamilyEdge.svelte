@@ -22,9 +22,10 @@
 		const midY = sourceY + (targetY - sourceY) / 2;
 		const radius = 8; // Corner radius
 
-		// Determine direction
+		// Determine direction - use generous threshold for "straight" to avoid tiny jogs
+		const horizontalDiff = Math.abs(targetX - sourceX);
 		const goingRight = targetX > sourceX;
-		const straight = Math.abs(targetX - sourceX) < 1;
+		const straight = horizontalDiff < 20;
 
 		if (straight) {
 			// Straight line down

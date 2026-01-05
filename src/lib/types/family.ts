@@ -10,12 +10,14 @@ export interface Person {
 
 export interface FamilyUnit {
 	id: string;
-	type: 'couple' | 'single';
+	type: 'couple' | 'single' | 'polygamous';
 	persons: Person[];
 	childrenIds: string[];
 	parentId?: string;
 	/** Index of the person who is the blood descendant (0 or 1). The other is the spouse. */
 	primaryPersonIndex?: number;
+	/** For children of polygamous units: index of mother in parent's persons array (1=wife, 2+=mistress) */
+	motherIndex?: number;
 }
 
 export interface FamilyTree {
@@ -39,14 +41,16 @@ export function createPerson(data: Partial<Person> & { firstName: string; lastNa
 
 export function createFamilyUnit(
 	persons: Person[],
-	options: { parentId?: string; childrenIds?: string[] } = {}
+	options: { parentId?: string; childrenIds?: string[]; motherIndex?: number } = {}
 ): FamilyUnit {
+	const type = persons.length >= 3 ? 'polygamous' : persons.length === 2 ? 'couple' : 'single';
 	return {
 		id: crypto.randomUUID(),
-		type: persons.length === 2 ? 'couple' : 'single',
+		type,
 		persons,
 		childrenIds: options.childrenIds ?? [],
-		parentId: options.parentId
+		parentId: options.parentId,
+		motherIndex: options.motherIndex
 	};
 }
 

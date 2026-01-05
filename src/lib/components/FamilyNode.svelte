@@ -12,6 +12,7 @@
 	let { data }: Props = $props();
 
 	const isCouple = $derived(data.unit.type === 'couple' && data.unit.persons.length === 2);
+	const isPolygamous = $derived(data.unit.type === 'polygamous' && data.unit.persons.length >= 3);
 	const hasParent = $derived(!!data.unit.parentId);
 	const hasChildren = $derived(data.unit.childrenIds.length > 0);
 
@@ -26,12 +27,12 @@
 		primaryPerson?.gender === 'male' ? '#3b82f6' : primaryPerson?.gender === 'female' ? '#ec4899' : '#6366f1'
 	);
 
-	// Order persons: male on left, female on right
+	// Order persons: male on left, females on right (for couple and polygamous)
 	const orderedPersons = $derived.by(() => {
-		if (!isCouple) return data.unit.persons;
+		if (data.unit.type === 'single') return data.unit.persons;
 
 		const persons = [...data.unit.persons];
-		// Sort by gender: male first, then female
+		// Sort by gender: male first, then females
 		persons.sort((a, b) => {
 			if (a.gender === 'male' && b.gender === 'female') return -1;
 			if (a.gender === 'female' && b.gender === 'male') return 1;
@@ -41,21 +42,46 @@
 		return persons;
 	});
 
+	// Get women (for polygamous units - need handles for each)
+	const women = $derived.by(() => {
+		if (!isPolygamous) return [];
+		return orderedPersons.filter(p => p.gender === 'female');
+	});
+
 	// Check if a person is the primary (blood child)
 	const isPrimary = (person: Person) => {
 		return person.id === primaryPerson?.id;
 	};
 
-	// Handle position: if primary is male (left side) -> 25%, if female (right side) -> 75%
+	// Get the original index of a person in data.unit.persons (for motherIndex)
+	const getPersonOriginalIndex = (person: Person) => {
+		return data.unit.persons.findIndex(p => p.id === person.id);
+	};
+
+	// Handle position for target (incoming edge from parent)
 	const handlePosition = $derived.by(() => {
-		if (!isCouple) return '50%';
-		// Male is always left, female always right
-		// So if primary is male, handle is at 25% (left), if female, at 75% (right)
+		if (data.unit.type === 'single') return '50%';
+		if (isPolygamous) {
+			// For polygamous, position handle over the primary person
+			const primaryIndex = orderedPersons.findIndex(p => p.id === primaryPerson?.id);
+			const totalPersons = orderedPersons.length;
+			// Each person takes equal width, handle at center of their slot
+			return `${((primaryIndex + 0.5) / totalPersons) * 100}%`;
+		}
+		// Couple: male left, female right
 		return primaryPerson?.gender === 'female' ? '75%' : '25%';
 	});
+
+	// Calculate source handle position for a woman (for polygamous units)
+	const getWomanHandlePosition = (womanIndex: number, totalWomen: number) => {
+		// Women are displayed after the man, so offset by 1 person width
+		const totalPersons = orderedPersons.length;
+		const womanPersonIndex = 1 + womanIndex; // Man is index 0, women start at 1
+		return `${((womanPersonIndex + 0.5) / totalPersons) * 100}%`;
+	};
 </script>
 
-<div class="family-node" class:couple={isCouple}>
+<div class="family-node" class:couple={isCouple} class:polygamous={isPolygamous}>
 	{#if hasParent}
 		<Handle
 			type="target"
@@ -80,8 +106,27 @@
 		<div class="marriage-line"></div>
 	{/if}
 
+	{#if isPolygamous}
+		<!-- Multiple marriage lines for polygamous units -->
+		{#each women as woman, i (woman.id)}
+			<div class="marriage-line" style={`left: ${((i + 0.5 + 0.5) / orderedPersons.length) * 100}%;`}></div>
+		{/each}
+	{/if}
+
 	{#if hasChildren}
-		<Handle type="source" position={Position.Bottom} />
+		{#if isPolygamous}
+			<!-- Multiple source handles for polygamous units - one per woman -->
+			{#each women as woman, i (woman.id)}
+				<Handle
+					type="source"
+					position={Position.Bottom}
+					id={`mother-${getPersonOriginalIndex(woman)}`}
+					style={`left: ${getWomanHandlePosition(i, women.length)};`}
+				/>
+			{/each}
+		{:else}
+			<Handle type="source" position={Position.Bottom} />
+		{/if}
 	{/if}
 </div>
 
@@ -103,7 +148,8 @@
 		gap: 0.5rem;
 	}
 
-	.couple .persons {
+	.couple .persons,
+	.polygamous .persons {
 		position: relative;
 	}
 
@@ -129,5 +175,10 @@
 		background: #ec4899;
 		border-radius: 2px;
 		z-index: 10;
+	}
+
+	/* For polygamous units, marriage lines have dynamic left positioning */
+	.polygamous .marriage-line {
+		transform: translateY(-50%);
 	}
 </style>

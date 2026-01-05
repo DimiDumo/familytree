@@ -63,7 +63,7 @@
 			const child1Id = rootUnit.childrenIds[0];
 			const child2Id = rootUnit.childrenIds[1];
 
-			// Add spouse to first child
+			// Add spouse (wife) to first child
 			familyStore.addSpouse(child1Id, {
 				firstName: 'Emily',
 				lastName: 'Smith',
@@ -71,20 +71,37 @@
 				birthDate: '1967-07-14'
 			});
 
-			// Add grandchildren to first child
+			// Add mistress to first child (makes it polygamous)
+			familyStore.addMistress(child1Id, {
+				firstName: 'Jennifer',
+				lastName: 'Jones',
+				gender: 'female',
+				birthDate: '1970-01-15'
+			});
+
+			// Add grandchildren to first child - specifying which mother
+			// Emily (wife) is at index 1 in persons array
 			familyStore.addChild(child1Id, {
 				firstName: 'Michael',
 				lastName: 'Smith',
 				gender: 'male',
 				birthDate: '1990-02-28'
-			});
+			}, 1); // Child of Emily (wife)
 
 			familyStore.addChild(child1Id, {
 				firstName: 'Sarah',
 				lastName: 'Smith',
 				gender: 'female',
 				birthDate: '1993-09-05'
-			});
+			}, 1); // Child of Emily (wife)
+
+			// Jennifer (mistress) is at index 2 in persons array
+			familyStore.addChild(child1Id, {
+				firstName: 'Jessica',
+				lastName: 'Smith',
+				gender: 'female',
+				birthDate: '1995-06-20'
+			}, 2); // Child of Jennifer (mistress)
 
 			// Add spouse to second child
 			familyStore.addSpouse(child2Id, {
