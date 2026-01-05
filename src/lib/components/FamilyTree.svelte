@@ -21,17 +21,27 @@
 	} as const;
 </script>
 
-<div class="family-tree-container">
+<div class="w-full h-full">
 	<SvelteFlow bind:nodes bind:edges {nodeTypes} {edgeTypes} fitView>
 		<Controls />
-		<Background />
-		<MiniMap />
+		<Background bgColor="oklch(var(--b2))" />
+		<MiniMap bgColor="oklch(var(--b1))" />
 	</SvelteFlow>
 </div>
 
 <style>
-	.family-tree-container {
-		width: 100%;
-		height: 100%;
+	/* SvelteFlow third-party components need global style overrides */
+	:global(.svelte-flow) {
+		background: oklch(var(--b2)) !important;
+	}
+
+	:global(.svelte-flow__controls-button) {
+		background: oklch(var(--b1)) !important;
+		border-color: oklch(var(--b3)) !important;
+		fill: oklch(var(--bc)) !important;
+	}
+
+	:global(.svelte-flow__controls-button:hover) {
+		background: oklch(var(--b2)) !important;
 	}
 </style>

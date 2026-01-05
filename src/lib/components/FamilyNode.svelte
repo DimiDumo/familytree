@@ -22,9 +22,9 @@
 		return data.unit.persons[primaryIndex];
 	});
 
-	// Border color based on primary person's gender
-	const primaryBorderColor = $derived(
-		primaryPerson?.gender === 'male' ? '#3b82f6' : primaryPerson?.gender === 'female' ? '#ec4899' : '#6366f1'
+	// Border color class based on primary person's gender
+	const primaryBorderClass = $derived(
+		primaryPerson?.gender === 'male' ? 'border-primary' : primaryPerson?.gender === 'female' ? 'border-secondary' : 'border-accent'
 	);
 
 	// Order persons: male on left, females on right (for couple and polygamous)
@@ -81,7 +81,7 @@
 	};
 </script>
 
-<div class="family-node" class:couple={isCouple} class:polygamous={isPolygamous}>
+<div class="bg-base-100 border-2 border-base-300 rounded-xl shadow-md relative hover:border-primary">
 	{#if hasParent}
 		<Handle
 			type="target"
@@ -90,18 +90,15 @@
 		/>
 	{/if}
 
-	<div class="persons">
+	<div class="flex gap-2">
 		{#each orderedPersons as person (person.id)}
 			<div
-				class="person-wrapper"
-				class:is-primary={hasParent && isPrimary(person)}
-				style={hasParent && isPrimary(person) ? `border-top-color: ${primaryBorderColor};` : ''}
+				class="relative {hasParent && isPrimary(person) ? `is-primary ${primaryBorderClass}` : ''}"
 			>
 				<PersonCard {person} />
 			</div>
 		{/each}
 	</div>
-
 
 	{#if hasChildren}
 		{#if isPolygamous}
@@ -121,38 +118,12 @@
 </div>
 
 <style>
-	.family-node {
-		background: white;
-		border: 2px solid #e5e7eb;
-		border-radius: 0.75rem;
-		box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-		position: relative;
-	}
-
-	.family-node:hover {
-		border-color: #6366f1;
-	}
-
-	.persons {
-		display: flex;
-		gap: 0.5rem;
-	}
-
-	.couple .persons,
-	.polygamous .persons {
-		position: relative;
-	}
-
-	.person-wrapper {
-		position: relative;
-	}
-
 	/* Colored accent bar showing this person is the blood descendant */
 	.is-primary {
-		border-top: 8px solid #6366f1;
+		border-top-width: 8px;
+		border-top-style: solid;
 		border-radius: 0.5rem 0.5rem 0 0;
 		margin-top: -4px;
 		padding-top: 4px;
 	}
-
 </style>
