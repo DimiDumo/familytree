@@ -1,11 +1,145 @@
-<div class="hero min-h-screen bg-base-200">
-	<div class="hero-content text-center">
-		<div class="max-w-md">
-			<h1 class="text-5xl font-bold">Family Tree</h1>
-			<p class="py-6">
-				Welcome to your family tree application. Built with SvelteKit, Tailwind CSS, and DaisyUI.
-			</p>
-			<button class="btn btn-primary">Get Started</button>
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import FamilyTree from '$lib/components/FamilyTree.svelte';
+	import { familyStore } from '$lib/stores/familyStore.svelte';
+	import { layoutFamilyTree, familyTreeToNodesEdges } from '$lib/utils/layout';
+	import type { Node, Edge } from '@xyflow/svelte';
+	import { createPerson, createFamilyUnit } from '$lib/types/family';
+
+	let nodes = $state<Node[]>([]);
+	let edges = $state<Edge[]>([]);
+	let showTree = $state(false);
+
+	onMount(() => {
+		familyStore.load();
+
+		// Create sample data if no tree exists
+		if (!familyStore.tree) {
+			createSampleTree();
+		}
+
+		updateLayout();
+	});
+
+	function createSampleTree() {
+		// Create grandparents
+		familyStore.createNew('Sample Family', {
+			firstName: 'John',
+			lastName: 'Smith',
+			birthDate: '1940-05-15'
+		});
+
+		if (!familyStore.tree) return;
+
+		// Add spouse to root (grandparents)
+		const rootId = familyStore.tree.rootId;
+		familyStore.addSpouse(rootId, {
+			firstName: 'Mary',
+			lastName: 'Smith',
+			birthDate: '1942-08-22'
+		});
+
+		// Add first child (parent generation)
+		familyStore.addChild(rootId, {
+			firstName: 'Robert',
+			lastName: 'Smith',
+			birthDate: '1965-03-10'
+		});
+
+		// Add second child
+		familyStore.addChild(rootId, {
+			firstName: 'Susan',
+			lastName: 'Smith',
+			birthDate: '1968-11-25'
+		});
+
+		// Get the children units to add their families
+		const rootUnit = familyStore.tree.units[rootId];
+		if (rootUnit && rootUnit.childrenIds.length >= 2) {
+			const child1Id = rootUnit.childrenIds[0];
+			const child2Id = rootUnit.childrenIds[1];
+
+			// Add spouse to first child
+			familyStore.addSpouse(child1Id, {
+				firstName: 'Emily',
+				lastName: 'Smith',
+				birthDate: '1967-07-14'
+			});
+
+			// Add grandchildren to first child
+			familyStore.addChild(child1Id, {
+				firstName: 'Michael',
+				lastName: 'Smith',
+				birthDate: '1990-02-28'
+			});
+
+			familyStore.addChild(child1Id, {
+				firstName: 'Sarah',
+				lastName: 'Smith',
+				birthDate: '1993-09-05'
+			});
+
+			// Add spouse to second child
+			familyStore.addSpouse(child2Id, {
+				firstName: 'David',
+				lastName: 'Johnson',
+				birthDate: '1966-04-18'
+			});
+
+			// Add grandchildren to second child
+			familyStore.addChild(child2Id, {
+				firstName: 'Emma',
+				lastName: 'Johnson',
+				birthDate: '1992-12-12'
+			});
+		}
+	}
+
+	async function updateLayout() {
+		if (!familyStore.tree) return;
+
+		try {
+			// Try ELK layout first
+			const layout = await layoutFamilyTree(familyStore.tree);
+			nodes = layout.nodes;
+			edges = layout.edges;
+		} catch (error) {
+			console.warn('ELK layout failed, using fallback:', error);
+			// Fallback to simple layout
+			const layout = familyTreeToNodesEdges(familyStore.tree);
+			nodes = layout.nodes;
+			edges = layout.edges;
+		}
+
+		showTree = true;
+	}
+
+	function handleReset() {
+		familyStore.clear();
+		createSampleTree();
+		updateLayout();
+	}
+</script>
+
+<div class="h-screen flex flex-col">
+	<header class="navbar bg-base-100 shadow-md">
+		<div class="flex-1">
+			<span class="text-xl font-bold px-4">Family Tree</span>
 		</div>
-	</div>
+		<div class="flex-none gap-2">
+			<button class="btn btn-ghost btn-sm" onclick={handleReset}>
+				Reset Sample Data
+			</button>
+		</div>
+	</header>
+
+	<main class="flex-1 bg-base-200">
+		{#if showTree && nodes.length > 0}
+			<FamilyTree bind:nodes bind:edges />
+		{:else}
+			<div class="flex items-center justify-center h-full">
+				<span class="loading loading-spinner loading-lg"></span>
+			</div>
+		{/if}
+	</main>
 </div>
