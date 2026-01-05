@@ -7,10 +7,11 @@
 	interface Props {
 		data: {
 			unit: FamilyUnit;
+			mode?: 'view' | 'edit';
+			onPersonClick?: (unitId: string, person: Person) => void;
 			onAddChild?: (unitId: string, motherIndex?: number) => void;
 			onAddSpouse?: (unitId: string) => void;
 			onAddPartner?: (unitId: string) => void;
-			onEditPerson?: (unitId: string, person: Person) => void;
 		};
 	}
 
@@ -30,9 +31,11 @@
 		data.onAddPartner?.(data.unit.id);
 	}
 
-	function handleEditPerson(person: Person) {
-		data.onEditPerson?.(data.unit.id, person);
+	function handlePersonClick(person: Person) {
+		data.onPersonClick?.(data.unit.id, person);
 	}
+
+	const isEditMode = $derived(data.mode === 'edit');
 
 	const isCouple = $derived(data.unit.type === 'couple' && data.unit.persons.length === 2);
 	const isPolygamous = $derived(data.unit.type === 'polygamous' && data.unit.persons.length >= 3);
@@ -127,7 +130,7 @@
 			<div
 				class="relative {hasParent && isPrimary(person) ? `is-primary ${primaryBorderClass}` : ''}"
 			>
-				<PersonCard {person} onclick={() => handleEditPerson(person)} />
+				<PersonCard {person} onclick={() => handlePersonClick(person)} />
 			</div>
 		{/each}
 	</div>
@@ -149,13 +152,15 @@
 	{/if}
 	</div>
 
-	<NodeAddControls
-		unit={data.unit}
-		{isHovered}
-		onAddChild={handleAddChild}
-		onAddSpouse={handleAddSpouse}
-		onAddPartner={handleAddPartner}
-	/>
+	{#if isEditMode}
+		<NodeAddControls
+			unit={data.unit}
+			{isHovered}
+			onAddChild={handleAddChild}
+			onAddSpouse={handleAddSpouse}
+			onAddPartner={handleAddPartner}
+		/>
+	{/if}
 </div>
 
 <style>

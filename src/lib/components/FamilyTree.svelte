@@ -5,13 +5,14 @@
 	import FamilyNode from './FamilyNode.svelte';
 	import FamilyEdge from './FamilyEdge.svelte';
 	import AddPersonModal from './AddPersonModal.svelte';
+	import PersonViewModal from './PersonViewModal.svelte';
 	import type { Person } from '$lib/types/family';
 
-	type AddMode = 'child' | 'spouse' | 'partner' | 'edit';
+	type ModalMode = 'child' | 'spouse' | 'partner' | 'edit' | 'view';
 
 	interface ModalState {
 		open: boolean;
-		mode: AddMode;
+		mode: ModalMode;
 		unitId: string;
 		motherIndex?: number;
 		editPerson?: Person;
@@ -20,13 +21,14 @@
 	interface Props {
 		nodes: Node[];
 		edges: Edge[];
+		mode?: 'view' | 'edit';
 		onAddChild?: (unitId: string, person: Partial<Person> & { firstName: string; lastName: string }, motherIndex?: number) => void;
 		onAddSpouse?: (unitId: string, person: Partial<Person> & { firstName: string; lastName: string }) => void;
 		onAddPartner?: (unitId: string, person: Partial<Person> & { firstName: string; lastName: string }) => void;
 		onEditPerson?: (unitId: string, personId: string, updates: Partial<Person> & { firstName: string; lastName: string }) => void;
 	}
 
-	let { nodes = $bindable([]), edges = $bindable([]), onAddChild, onAddSpouse, onAddPartner, onEditPerson }: Props = $props();
+	let { nodes = $bindable([]), edges = $bindable([]), mode = 'edit', onAddChild, onAddSpouse, onAddPartner, onEditPerson }: Props = $props();
 
 	let modalState = $state<ModalState>({
 		open: false,
@@ -49,6 +51,10 @@
 
 	function handleEditPerson(unitId: string, person: Person) {
 		modalState = { open: true, mode: 'edit', unitId, editPerson: person };
+	}
+
+	function handleViewPerson(unitId: string, person: Person) {
+		modalState = { open: true, mode: 'view', unitId, editPerson: person };
 	}
 
 	function closeModal() {
@@ -75,16 +81,19 @@
 		closeModal();
 	}
 
-	// Inject callbacks into node data
+	// Inject callbacks into node data based on mode
 	const nodesWithCallbacks = $derived(
 		nodes.map((node) => ({
 			...node,
 			data: {
 				...node.data,
-				onAddChild: handleAddChild,
-				onAddSpouse: handleAddSpouse,
-				onAddPartner: handleAddPartner,
-				onEditPerson: handleEditPerson
+				mode,
+				onPersonClick: mode === 'edit' ? handleEditPerson : handleViewPerson,
+				...(mode === 'edit' && {
+					onAddChild: handleAddChild,
+					onAddSpouse: handleAddSpouse,
+					onAddPartner: handleAddPartner
+				})
 			}
 		}))
 	);
@@ -111,13 +120,21 @@
 	{/key}
 </div>
 
-<AddPersonModal
-	open={modalState.open}
-	mode={modalState.mode}
-	editPerson={modalState.editPerson}
-	onSubmit={handlePersonSubmit}
-	onClose={closeModal}
-/>
+{#if modalState.mode === 'view'}
+	<PersonViewModal
+		open={modalState.open}
+		person={modalState.editPerson}
+		onClose={closeModal}
+	/>
+{:else}
+	<AddPersonModal
+		open={modalState.open}
+		mode={modalState.mode}
+		editPerson={modalState.editPerson}
+		onSubmit={handlePersonSubmit}
+		onClose={closeModal}
+	/>
+{/if}
 
 <style>
 	/* SvelteFlow third-party components need global style overrides */

@@ -6,9 +6,12 @@
 	import type { Node, Edge } from '@xyflow/svelte';
 	import { createPerson, createFamilyUnit, type Person } from '$lib/types/family';
 
+	type AppMode = 'view' | 'edit';
+
 	let nodes = $state<Node[]>([]);
 	let edges = $state<Edge[]>([]);
 	let showTree = $state(false);
+	let appMode = $state<AppMode>('edit');
 
 	onMount(() => {
 		familyStore.load();
@@ -191,6 +194,22 @@
 			<span class="text-xl font-bold px-4">Family Tree</span>
 		</div>
 		<div class="flex-none gap-2">
+			<div class="tabs tabs-boxed">
+				<button
+					class="tab"
+					class:tab-active={appMode === 'view'}
+					onclick={() => (appMode = 'view')}
+				>
+					View
+				</button>
+				<button
+					class="tab"
+					class:tab-active={appMode === 'edit'}
+					onclick={() => (appMode = 'edit')}
+				>
+					Edit
+				</button>
+			</div>
 			<button class="btn btn-ghost btn-sm" onclick={handleReset}>
 				Reset Sample Data
 			</button>
@@ -202,6 +221,7 @@
 			<FamilyTree
 				bind:nodes
 				bind:edges
+				mode={appMode}
 				onAddChild={handleAddChild}
 				onAddSpouse={handleAddSpouse}
 				onAddPartner={handleAddPartner}
