@@ -173,6 +173,16 @@
 		familyStore.addMistress(unitId, person);
 		updateLayout();
 	}
+
+	// Handle editing a person from the modal
+	function handleEditPerson(
+		unitId: string,
+		personId: string,
+		updates: Partial<Person> & { firstName: string; lastName: string }
+	) {
+		familyStore.updatePerson(unitId, personId, updates);
+		// No re-layout needed since structure doesn't change
+	}
 </script>
 
 <div class="h-screen flex flex-col">
@@ -195,6 +205,7 @@
 				onAddChild={handleAddChild}
 				onAddSpouse={handleAddSpouse}
 				onAddPartner={handleAddPartner}
+				onEditPerson={handleEditPerson}
 			/>
 		{:else}
 			<div class="flex items-center justify-center h-full">

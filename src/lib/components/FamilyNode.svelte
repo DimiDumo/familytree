@@ -10,6 +10,7 @@
 			onAddChild?: (unitId: string, motherIndex?: number) => void;
 			onAddSpouse?: (unitId: string) => void;
 			onAddPartner?: (unitId: string) => void;
+			onEditPerson?: (unitId: string, person: Person) => void;
 		};
 	}
 
@@ -27,6 +28,10 @@
 
 	function handleAddPartner() {
 		data.onAddPartner?.(data.unit.id);
+	}
+
+	function handleEditPerson(person: Person) {
+		data.onEditPerson?.(data.unit.id, person);
 	}
 
 	const isCouple = $derived(data.unit.type === 'couple' && data.unit.persons.length === 2);
@@ -122,7 +127,7 @@
 			<div
 				class="relative {hasParent && isPrimary(person) ? `is-primary ${primaryBorderClass}` : ''}"
 			>
-				<PersonCard {person} />
+				<PersonCard {person} onclick={() => handleEditPerson(person)} />
 			</div>
 		{/each}
 	</div>

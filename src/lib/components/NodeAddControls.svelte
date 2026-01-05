@@ -55,9 +55,9 @@
 			<!-- One button per woman for polygamous units -->
 			{#each women as woman, i (woman.id)}
 				<div
-					class="absolute bottom-0 translate-y-full pt-2"
+					class="absolute -bottom-3"
 					style:left={getWomanButtonPosition(i)}
-					style:transform="translateX(-50%) translateY(100%)"
+					style:transform="translateX(-50%)"
 				>
 					<AddButton
 						tooltip="Add child from {woman.firstName}"
@@ -68,7 +68,7 @@
 			{/each}
 		{:else}
 			<!-- Single centered button for single/couple -->
-			<div class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full pt-2">
+			<div class="absolute -bottom-3 left-1/2 -translate-x-1/2">
 				<AddButton
 					tooltip="Add child"
 					variant="accent"
@@ -78,7 +78,7 @@
 		{/if}
 
 		<!-- Spouse/Partner button on right -->
-		<div class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 pl-2">
+		<div class="absolute -right-3 top-1/2 -translate-y-1/2">
 			{#if isSingle}
 				<AddButton
 					tooltip="Add spouse"

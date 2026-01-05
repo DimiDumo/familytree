@@ -3,9 +3,17 @@
 
 	interface Props {
 		person: Person;
+		onclick?: (e: MouseEvent) => void;
 	}
 
-	let { person }: Props = $props();
+	let { person, onclick }: Props = $props();
+
+	function handleClick(e: MouseEvent) {
+		if (onclick) {
+			e.stopPropagation();
+			onclick(e);
+		}
+	}
 
 	const fullName = $derived(`${person.firstName} ${person.lastName}`);
 
@@ -29,7 +37,15 @@
 	);
 </script>
 
-<div class="flex flex-col items-center p-3 min-w-[120px]">
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+<div
+	class="flex flex-col items-center p-3 min-w-[120px] rounded-lg transition-colors"
+	class:cursor-pointer={!!onclick}
+	class:hover:bg-base-200={!!onclick}
+	onclick={handleClick}
+	role={onclick ? 'button' : undefined}
+	tabindex={onclick ? 0 : undefined}
+>
 	<div class="w-15 h-15 rounded-full overflow-hidden mb-2 border-3 {genderClass === 'male' ? 'border-primary' : genderClass === 'female' ? 'border-secondary' : 'border-base-300'}">
 		{#if person.photoUrl}
 			<img src={person.photoUrl} alt={fullName} class="w-full h-full object-cover" />

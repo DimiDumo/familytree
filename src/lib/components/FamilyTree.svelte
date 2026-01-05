@@ -7,13 +7,14 @@
 	import AddPersonModal from './AddPersonModal.svelte';
 	import type { Person } from '$lib/types/family';
 
-	type AddMode = 'child' | 'spouse' | 'partner';
+	type AddMode = 'child' | 'spouse' | 'partner' | 'edit';
 
 	interface ModalState {
 		open: boolean;
 		mode: AddMode;
 		unitId: string;
 		motherIndex?: number;
+		editPerson?: Person;
 	}
 
 	interface Props {
@@ -22,9 +23,10 @@
 		onAddChild?: (unitId: string, person: Partial<Person> & { firstName: string; lastName: string }, motherIndex?: number) => void;
 		onAddSpouse?: (unitId: string, person: Partial<Person> & { firstName: string; lastName: string }) => void;
 		onAddPartner?: (unitId: string, person: Partial<Person> & { firstName: string; lastName: string }) => void;
+		onEditPerson?: (unitId: string, personId: string, updates: Partial<Person> & { firstName: string; lastName: string }) => void;
 	}
 
-	let { nodes = $bindable([]), edges = $bindable([]), onAddChild, onAddSpouse, onAddPartner }: Props = $props();
+	let { nodes = $bindable([]), edges = $bindable([]), onAddChild, onAddSpouse, onAddPartner, onEditPerson }: Props = $props();
 
 	let modalState = $state<ModalState>({
 		open: false,
@@ -45,6 +47,10 @@
 		modalState = { open: true, mode: 'partner', unitId };
 	}
 
+	function handleEditPerson(unitId: string, person: Person) {
+		modalState = { open: true, mode: 'edit', unitId, editPerson: person };
+	}
+
 	function closeModal() {
 		modalState = { ...modalState, open: false };
 	}
@@ -60,6 +66,11 @@
 			case 'partner':
 				onAddPartner?.(modalState.unitId, person);
 				break;
+			case 'edit':
+				if (modalState.editPerson) {
+					onEditPerson?.(modalState.unitId, modalState.editPerson.id, person);
+				}
+				break;
 		}
 		closeModal();
 	}
@@ -72,7 +83,8 @@
 				...node.data,
 				onAddChild: handleAddChild,
 				onAddSpouse: handleAddSpouse,
-				onAddPartner: handleAddPartner
+				onAddPartner: handleAddPartner,
+				onEditPerson: handleEditPerson
 			}
 		}))
 	);
@@ -102,6 +114,7 @@
 <AddPersonModal
 	open={modalState.open}
 	mode={modalState.mode}
+	editPerson={modalState.editPerson}
 	onSubmit={handlePersonSubmit}
 	onClose={closeModal}
 />

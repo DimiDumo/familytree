@@ -1,16 +1,17 @@
 <script lang="ts">
 	import type { Person } from '$lib/types/family';
 
-	type AddMode = 'child' | 'spouse' | 'partner';
+	type AddMode = 'child' | 'spouse' | 'partner' | 'edit';
 
 	interface Props {
 		open: boolean;
 		mode: AddMode;
+		editPerson?: Person;
 		onSubmit: (person: Partial<Person> & { firstName: string; lastName: string }) => void;
 		onClose: () => void;
 	}
 
-	let { open, mode, onSubmit, onClose }: Props = $props();
+	let { open, mode, editPerson, onSubmit, onClose }: Props = $props();
 
 	let firstName = $state('');
 	let lastName = $state('');
@@ -21,8 +22,11 @@
 	const modeLabels: Record<AddMode, string> = {
 		child: 'Add Child',
 		spouse: 'Add Spouse',
-		partner: 'Add Partner'
+		partner: 'Add Partner',
+		edit: 'Edit Person'
 	};
+
+	const isEdit = $derived(mode === 'edit');
 
 	function resetForm() {
 		firstName = '';
@@ -52,10 +56,18 @@
 		onClose();
 	}
 
-	// Reset form when modal opens with new mode
+	// Reset or populate form when modal opens
 	$effect(() => {
 		if (open) {
-			resetForm();
+			if (mode === 'edit' && editPerson) {
+				firstName = editPerson.firstName;
+				lastName = editPerson.lastName;
+				gender = editPerson.gender || 'male';
+				birthDate = editPerson.birthDate || '';
+				deathDate = editPerson.deathDate || '';
+			} else {
+				resetForm();
+			}
 		}
 	});
 </script>
@@ -152,7 +164,7 @@
 					Cancel
 				</button>
 				<button type="submit" class="btn btn-primary">
-					Add
+					{isEdit ? 'Save' : 'Add'}
 				</button>
 			</div>
 		</form>
