@@ -1,14 +1,12 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { addUnit, addPerson, updateUnit, getTree } from '$lib/server/db';
+import { getDB } from '$lib/server/local-db';
 import { createPerson, createFamilyUnit } from '$lib/types/family';
 
 // POST /api/trees/[id]/units - Add child, spouse, or mistress
 export const POST: RequestHandler = async ({ params, request, platform }) => {
-	const db = platform?.env.DB;
-	if (!db) {
-		return json({ error: 'Database not available' }, { status: 500 });
-	}
+	const db = getDB(platform);
 
 	const body = await request.json();
 	const { action, unitId, person: personData, motherIndex } = body as {

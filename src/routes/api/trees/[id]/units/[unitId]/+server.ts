@@ -1,13 +1,11 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { deleteUnit, getTree } from '$lib/server/db';
+import { getDB } from '$lib/server/local-db';
 
 // DELETE /api/trees/[id]/units/[unitId] - Delete unit and descendants
 export const DELETE: RequestHandler = async ({ params, platform }) => {
-	const db = platform?.env.DB;
-	if (!db) {
-		return json({ error: 'Database not available' }, { status: 500 });
-	}
+	const db = getDB(platform);
 
 	const tree = await getTree(db, params.id);
 	if (!tree) {
