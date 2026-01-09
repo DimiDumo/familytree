@@ -4,7 +4,7 @@
 	import { familyStore } from '$lib/stores/familyStore.svelte';
 	import { layoutFamilyTree, familyTreeToNodesEdges } from '$lib/utils/layout';
 	import type { Node, Edge } from '@xyflow/svelte';
-	import { createPerson, createFamilyUnit, type Person } from '$lib/types/family';
+	import type { Person } from '$lib/types/family';
 
 	type AppMode = 'view' | 'edit';
 
@@ -13,20 +13,20 @@
 	let showTree = $state(false);
 	let appMode = $state<AppMode>('edit');
 
-	onMount(() => {
-		familyStore.load();
+	onMount(async () => {
+		await familyStore.load();
 
 		// Create sample data if no tree exists
 		if (!familyStore.tree) {
-			createSampleTree();
+			await createSampleTree();
 		}
 
-		updateLayout();
+		await updateLayout();
 	});
 
-	function createSampleTree() {
+	async function createSampleTree() {
 		// Create grandparents
-		familyStore.createNew('Sample Family', {
+		await familyStore.createNew('Sample Family', {
 			firstName: 'John',
 			lastName: 'Smith',
 			gender: 'male',
@@ -37,7 +37,7 @@
 
 		// Add spouse to root (grandparents)
 		const rootId = familyStore.tree.rootId;
-		familyStore.addSpouse(rootId, {
+		await familyStore.addSpouse(rootId, {
 			firstName: 'Mary',
 			lastName: 'Smith',
 			gender: 'female',
@@ -45,7 +45,7 @@
 		});
 
 		// Add first child (parent generation)
-		familyStore.addChild(rootId, {
+		await familyStore.addChild(rootId, {
 			firstName: 'Robert',
 			lastName: 'Smith',
 			gender: 'male',
@@ -53,7 +53,7 @@
 		});
 
 		// Add second child
-		familyStore.addChild(rootId, {
+		await familyStore.addChild(rootId, {
 			firstName: 'Susan',
 			lastName: 'Smith',
 			gender: 'female',
@@ -67,7 +67,7 @@
 			const child2Id = rootUnit.childrenIds[1];
 
 			// Add spouse (wife) to first child
-			familyStore.addSpouse(child1Id, {
+			await familyStore.addSpouse(child1Id, {
 				firstName: 'Emily',
 				lastName: 'Smith',
 				gender: 'female',
@@ -75,7 +75,7 @@
 			});
 
 			// Add mistress to first child (makes it polygamous)
-			familyStore.addMistress(child1Id, {
+			await familyStore.addMistress(child1Id, {
 				firstName: 'Jennifer',
 				lastName: 'Jones',
 				gender: 'female',
@@ -84,14 +84,14 @@
 
 			// Add grandchildren to first child - specifying which mother
 			// Emily (wife) is at index 1 in persons array
-			familyStore.addChild(child1Id, {
+			await familyStore.addChild(child1Id, {
 				firstName: 'Michael',
 				lastName: 'Smith',
 				gender: 'male',
 				birthDate: '1990-02-28'
 			}, 1); // Child of Emily (wife)
 
-			familyStore.addChild(child1Id, {
+			await familyStore.addChild(child1Id, {
 				firstName: 'Sarah',
 				lastName: 'Smith',
 				gender: 'female',
@@ -99,7 +99,7 @@
 			}, 1); // Child of Emily (wife)
 
 			// Jennifer (mistress) is at index 2 in persons array
-			familyStore.addChild(child1Id, {
+			await familyStore.addChild(child1Id, {
 				firstName: 'Jessica',
 				lastName: 'Smith',
 				gender: 'female',
@@ -107,7 +107,7 @@
 			}, 2); // Child of Jennifer (mistress)
 
 			// Add spouse to second child
-			familyStore.addSpouse(child2Id, {
+			await familyStore.addSpouse(child2Id, {
 				firstName: 'David',
 				lastName: 'Johnson',
 				gender: 'male',
@@ -115,7 +115,7 @@
 			});
 
 			// Add grandchildren to second child
-			familyStore.addChild(child2Id, {
+			await familyStore.addChild(child2Id, {
 				firstName: 'Emma',
 				lastName: 'Johnson',
 				gender: 'female',
@@ -143,47 +143,47 @@
 		showTree = true;
 	}
 
-	function handleReset() {
-		familyStore.clear();
-		createSampleTree();
-		updateLayout();
+	async function handleReset() {
+		await familyStore.clear();
+		await createSampleTree();
+		await updateLayout();
 	}
 
 	// Handle adding a child from the modal
-	function handleAddChild(
+	async function handleAddChild(
 		unitId: string,
 		person: Partial<Person> & { firstName: string; lastName: string },
 		motherIndex?: number
 	) {
-		familyStore.addChild(unitId, person, motherIndex);
-		updateLayout();
+		await familyStore.addChild(unitId, person, motherIndex);
+		await updateLayout();
 	}
 
 	// Handle adding a spouse from the modal
-	function handleAddSpouse(
+	async function handleAddSpouse(
 		unitId: string,
 		person: Partial<Person> & { firstName: string; lastName: string }
 	) {
-		familyStore.addSpouse(unitId, person);
-		updateLayout();
+		await familyStore.addSpouse(unitId, person);
+		await updateLayout();
 	}
 
 	// Handle adding a partner (mistress) from the modal
-	function handleAddPartner(
+	async function handleAddPartner(
 		unitId: string,
 		person: Partial<Person> & { firstName: string; lastName: string }
 	) {
-		familyStore.addMistress(unitId, person);
-		updateLayout();
+		await familyStore.addMistress(unitId, person);
+		await updateLayout();
 	}
 
 	// Handle editing a person from the modal
-	function handleEditPerson(
+	async function handleEditPerson(
 		unitId: string,
 		personId: string,
 		updates: Partial<Person> & { firstName: string; lastName: string }
 	) {
-		familyStore.updatePerson(unitId, personId, updates);
+		await familyStore.updatePerson(unitId, personId, updates);
 		// No re-layout needed since structure doesn't change
 	}
 </script>
@@ -217,7 +217,17 @@
 	</header>
 
 	<main class="flex-1 bg-base-200">
-		{#if showTree && nodes.length > 0}
+		{#if familyStore.isLoading}
+			<div class="flex items-center justify-center h-full">
+				<span class="loading loading-spinner loading-lg"></span>
+			</div>
+		{:else if familyStore.error}
+			<div class="flex items-center justify-center h-full">
+				<div class="alert alert-error max-w-md">
+					<span>Error: {familyStore.error}</span>
+				</div>
+			</div>
+		{:else if showTree && nodes.length > 0}
 			<FamilyTree
 				bind:nodes
 				bind:edges
