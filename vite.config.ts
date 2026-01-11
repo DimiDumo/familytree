@@ -6,6 +6,7 @@ export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
 	server: {
 		port: 5180,
-		host: '0.0.0.0'
+		host: '0.0.0.0',
+		allowedHosts: ['vibe']
 	}
 });
