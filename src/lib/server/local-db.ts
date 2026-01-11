@@ -1,16 +1,23 @@
 import { Database, type SQLQueryBindings } from 'bun:sqlite';
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, existsSync, mkdirSync } from 'fs';
+import { join, dirname } from 'path';
 import { dev } from '$app/environment';
+import { homedir } from 'os';
 
-const DB_PATH = '.wrangler/state/v3/d1/miniflare-D1DatabaseObject/2b35d4d42e3c9f6b5ad5b5579a7b1470c66e69f6b33a31e3f5a0095cc6d18656.sqlite';
+// Use a fixed location outside of worktrees so all dev instances share the same database
+const DB_DIR = join(homedir(), '.local', 'share', 'familytree');
+const DB_PATH = join(DB_DIR, 'dev.sqlite');
 
 let db: Database | null = null;
 
 function getDb(): Database {
 	if (!db) {
+		// Ensure the directory exists
+		if (!existsSync(DB_DIR)) {
+			mkdirSync(DB_DIR, { recursive: true });
+		}
 		db = new Database(DB_PATH, { create: true });
-		// Initialize schema if needed
+		// Initialize schema if needed - look for schema.sql in the project
 		const schemaPath = join(process.cwd(), 'schema.sql');
 		if (existsSync(schemaPath)) {
 			const schema = readFileSync(schemaPath, 'utf-8');
