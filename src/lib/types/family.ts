@@ -5,7 +5,7 @@ export interface Person {
 	gender?: 'male' | 'female';
 	birthDate?: string;
 	deathDate?: string;
-	photoUrl?: string;
+	photoUrls?: string[];
 	biography?: string;
 }
 
@@ -36,7 +36,7 @@ export function createPerson(data: Partial<Person> & { firstName: string; lastNa
 		gender: data.gender,
 		birthDate: data.birthDate,
 		deathDate: data.deathDate,
-		photoUrl: data.photoUrl,
+		photoUrls: data.photoUrls,
 		biography: data.biography
 	};
 }

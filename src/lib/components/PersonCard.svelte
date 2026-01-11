@@ -47,8 +47,8 @@
 	tabindex={onclick ? 0 : undefined}
 >
 	<div class="w-15 h-15 rounded-full overflow-hidden mb-2 border-3 {genderClass === 'male' ? 'border-primary' : genderClass === 'female' ? 'border-secondary' : 'border-base-300'}">
-		{#if person.photoUrl}
-			<img src={person.photoUrl} alt={fullName} class="w-full h-full object-cover" />
+		{#if person.photoUrls?.[0]}
+			<img src="/api/images/{person.photoUrls[0]}" alt={fullName} class="w-full h-full object-cover" />
 		{:else}
 			<div class="w-full h-full flex items-center justify-center font-semibold text-xl {genderClass === 'male' ? 'bg-primary text-primary-content' : genderClass === 'female' ? 'bg-secondary text-secondary-content' : 'bg-base-300 text-base-content'}">
 				{person.firstName[0]}{person.lastName[0]}

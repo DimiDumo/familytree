@@ -27,9 +27,29 @@ interface PersonRow {
 	gender: 'male' | 'female' | null;
 	birth_date: string | null;
 	death_date: string | null;
-	photo_url: string | null;
+	photo_url: string | null; // Stored as JSON array string
 	biography: string | null;
 	position: number;
+}
+
+// Helper to parse photo_url from DB (JSON array or legacy single URL)
+function parsePhotoUrls(photoUrl: string | null): string[] | undefined {
+	if (!photoUrl) return undefined;
+	try {
+		const parsed = JSON.parse(photoUrl);
+		if (Array.isArray(parsed)) return parsed.length > 0 ? parsed : undefined;
+		// Legacy single URL - wrap in array
+		return [photoUrl];
+	} catch {
+		// Not JSON - treat as legacy single URL
+		return [photoUrl];
+	}
+}
+
+// Helper to stringify photoUrls for DB storage
+function stringifyPhotoUrls(photoUrls: string[] | undefined): string | null {
+	if (!photoUrls || photoUrls.length === 0) return null;
+	return JSON.stringify(photoUrls);
 }
 
 // Get all trees (list view)
@@ -71,7 +91,7 @@ export async function getTree(db: D1Database, treeId: string): Promise<FamilyTre
 			gender: person.gender ?? undefined,
 			birthDate: person.birth_date ?? undefined,
 			deathDate: person.death_date ?? undefined,
-			photoUrl: person.photo_url ?? undefined,
+			photoUrls: parsePhotoUrls(person.photo_url),
 			biography: person.biography ?? undefined
 		});
 	}
@@ -145,7 +165,7 @@ export async function createTree(
 				person.gender ?? null,
 				person.birthDate ?? null,
 				person.deathDate ?? null,
-				person.photoUrl ?? null,
+				stringifyPhotoUrls(person.photoUrls),
 				person.biography ?? null,
 				i
 			)
@@ -207,7 +227,7 @@ export async function addUnit(
 				person.gender ?? null,
 				person.birthDate ?? null,
 				person.deathDate ?? null,
-				person.photoUrl ?? null,
+				stringifyPhotoUrls(person.photoUrls),
 				person.biography ?? null,
 				i
 			)
@@ -293,7 +313,7 @@ export async function addPerson(db: D1Database, unitId: string, person: Person):
 			person.gender ?? null,
 			person.birthDate ?? null,
 			person.deathDate ?? null,
-			person.photoUrl ?? null,
+			stringifyPhotoUrls(person.photoUrls),
 			person.biography ?? null,
 			position
 		)
@@ -325,9 +345,9 @@ export async function updatePerson(db: D1Database, personId: string, updates: Pa
 		sets.push('death_date = ?');
 		values.push(updates.deathDate ?? null);
 	}
-	if (updates.photoUrl !== undefined) {
+	if (updates.photoUrls !== undefined) {
 		sets.push('photo_url = ?');
-		values.push(updates.photoUrl ?? null);
+		values.push(stringifyPhotoUrls(updates.photoUrls));
 	}
 	if (updates.biography !== undefined) {
 		sets.push('biography = ?');

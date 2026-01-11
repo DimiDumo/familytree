@@ -21,11 +21,36 @@
 	const genderLabel = $derived(
 		person?.gender === 'male' ? 'Male' : person?.gender === 'female' ? 'Female' : 'Unknown'
 	);
+
+	const hasPhotos = $derived((person?.photoUrls?.length ?? 0) > 0);
+	const photoCount = $derived(person?.photoUrls?.length ?? 0);
 </script>
 
 <dialog class="modal" class:modal-open={open}>
 	<div class="modal-box">
 		{#if person}
+			<!-- Photo Carousel -->
+			{#if hasPhotos}
+				<div class="mb-4">
+					<div class="carousel carousel-center w-full rounded-box bg-base-200">
+						{#each person.photoUrls as key, i (key)}
+							<div class="carousel-item w-full">
+								<img
+									src="/api/images/{key}"
+									alt="{person.firstName} {person.lastName} - Photo {i + 1}"
+									class="w-full object-contain max-h-72"
+								/>
+							</div>
+						{/each}
+					</div>
+					{#if photoCount > 1}
+						<p class="text-center text-sm text-base-content/60 mt-2">
+							Swipe to see {photoCount} photos
+						</p>
+					{/if}
+				</div>
+			{/if}
+
 			<h3 class="font-bold text-xl mb-4">{person.firstName} {person.lastName}</h3>
 
 			<div class="space-y-3">
