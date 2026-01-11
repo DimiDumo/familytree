@@ -1,8 +1,23 @@
-import ELK from 'elkjs/lib/elk.bundled.js';
 import type { Node, Edge } from '@xyflow/svelte';
 import type { FamilyTree, FamilyUnit } from '$lib/types/family';
 
-const elk = new ELK();
+// Lazy-load ELK to handle environments where Web Workers aren't available
+let elk: InstanceType<typeof import('elkjs/lib/elk.bundled.js').default> | null = null;
+let elkLoadFailed = false;
+
+async function getElk() {
+	if (elkLoadFailed) return null;
+	if (elk) return elk;
+
+	try {
+		const ELK = (await import('elkjs/lib/elk.bundled.js')).default;
+		elk = new ELK();
+		return elk;
+	} catch {
+		elkLoadFailed = true;
+		return null;
+	}
+}
 
 const NODE_WIDTH = 280;
 const NODE_HEIGHT = 140;
@@ -132,6 +147,14 @@ interface ElkGraph {
 export async function layoutFamilyTree(
 	familyTree: FamilyTree
 ): Promise<{ nodes: Node[]; edges: Edge[] }> {
+	// Try to get ELK, fall back to simple layout if not available
+	const elkInstance = await getElk();
+	if (!elkInstance) {
+		// ELK not available (e.g., Bun doesn't support Web Workers)
+		// Fall back to simple manual layout
+		return familyTreeToNodesEdges(familyTree);
+	}
+
 	const units = Object.values(familyTree.units);
 
 	// Sort units to ensure children are ordered by motherIndex (for polygamous parents)
@@ -184,7 +207,7 @@ export async function layoutFamilyTree(
 	};
 
 	// Run ELK layout
-	const layoutedGraph = await elk.layout(elkGraph);
+	const layoutedGraph = await elkInstance.layout(elkGraph);
 
 	// Convert to Svelte Flow nodes
 	const nodes: Node[] = (layoutedGraph.children || []).map((elkNode) => {
